@@ -13,6 +13,8 @@ public interface PhotoDAO
 
   public abstract boolean removeTag(User user, Photo photo, String exTag);
 
+  public abstract boolean addComment(User user, Photo photo, String newComment);
+
   public abstract boolean changeVisibility(User user, Photo photo, Photo.Visibility newVisibility);
 
   public abstract ArrayList<Photo> getPhotos(String owner, String tag, Photo.Visibility allowedVisibility);

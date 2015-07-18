@@ -15,22 +15,22 @@ public class User
    * This is created by mongodb when we insert this Photo (as a document) into
    * the database.
    */
-  String id;
+  private String id;
 
   /**
    * This user's unique identifier.
    */
-  String username;
+  private String username;
 
   /**
    * A list of other user's this user has identified as known people.
    */
-  ArrayList<String> friendsList;
+  private ArrayList<String> friendsList;
 
   /**
    * Access point for retrieving/adding/modifying this user's photos. 
    */
-  PhotoDAO photoDAO;
+  private PhotoDAO photoDAO;
 
   /**
    * Empty constructor - used for building a User from an entry in the db.
@@ -89,6 +89,32 @@ public class User
   }
 
   /**
+   * Add a friend's name to this user's friends list.
+   * Does not add the name if it's already present in the list.
+   * 
+   * @param newFriend  The name to add to the list.
+   */
+  public void addFriend(String newFriend)
+  {
+    if (!friendsList.contains(newFriend))
+    {
+      // No point in adding the friend if they are already there!
+      friendsList.add(newFriend);
+    }
+  }
+
+  /**
+   * Remove a name from the user's friends list.
+   * No harm done if the given name is not in the list.
+   * 
+   * @param exFriend  The name to remove from the list (if present).
+   */
+  public void removeFriend(String exFriend)
+  {
+    friendsList.remove(exFriend);
+  }
+
+  /**
    * Get the database object id of this user.
    */
   public String getId()
@@ -109,11 +135,18 @@ public class User
     return friendsList;
   }
 
+  /**
+   * 
+   * @param photoOwner
+   * @param tag
+   * @return
+   */
   public ArrayList<Photo> getPhotos(User photoOwner, String tag)
   {
     // Default the visibility setting to the least secure.
     Photo.Visibility allowedVisibility = Visibility.PUBLIC;
 
+    // Get hold of the a User object for the photo owner.
     String ownersName = photoOwner.getUsername();
 
     if (username.equals(ownersName))

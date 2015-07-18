@@ -83,7 +83,9 @@ public class MongoDbDAOUser implements UserDAO
     collection = db.getCollection(USERS_COLLECTION);
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.example.rcubed.UserDAO#insertUser(com.example.rcubed.User)
    */
   @Override
@@ -104,7 +106,9 @@ public class MongoDbDAOUser implements UserDAO
     return success;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.example.rcubed.UserDAO#getUser(com.example.rcubed.PhotoDAO, java.lang.String)
    */
   @Override
@@ -121,7 +125,9 @@ public class MongoDbDAOUser implements UserDAO
     return user;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.example.rcubed.UserDAO#deleteUser(com.example.rcubed.User)
    */
   @Override
@@ -141,7 +147,9 @@ public class MongoDbDAOUser implements UserDAO
     return success;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.example.rcubed.UserDAO#addFriend(com.example.rcubed.User, java.lang.String)
    */
   @Override
@@ -167,13 +175,18 @@ public class MongoDbDAOUser implements UserDAO
       {
         // Update was successful.
         success = true;
+
+        // Update the user object to reflect the change pushed to the db.
+        user.addFriend(newFriend);
       }
     }
 
     return success;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.example.rcubed.UserDAO#removeFriend(com.example.rcubed.User, java.lang.String)
    */
   @Override
@@ -199,6 +212,9 @@ public class MongoDbDAOUser implements UserDAO
       {
         // Update was successful.
         success = true;
+
+        // Update the user object to reflect the change pushed to the db.
+        user.removeFriend(exFriend);
       }
 
     }
