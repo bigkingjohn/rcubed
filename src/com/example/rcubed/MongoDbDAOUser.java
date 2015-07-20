@@ -13,6 +13,9 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
+/**
+ * DAO (data access object) providing the interface for all the MongoDb operations that can be performed on a user.
+ */
 public class MongoDbDAOUser implements UserDAO
 {
   /**
@@ -83,9 +86,7 @@ public class MongoDbDAOUser implements UserDAO
     collection = db.getCollection(USERS_COLLECTION);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /**
    * @see com.example.rcubed.UserDAO#insertUser(com.example.rcubed.User)
    */
   @Override
@@ -106,9 +107,7 @@ public class MongoDbDAOUser implements UserDAO
     return success;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /**
    * @see com.example.rcubed.UserDAO#getUser(com.example.rcubed.PhotoDAO, java.lang.String)
    */
   @Override
@@ -125,9 +124,7 @@ public class MongoDbDAOUser implements UserDAO
     return user;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /**
    * @see com.example.rcubed.UserDAO#deleteUser(com.example.rcubed.User)
    */
   @Override
@@ -147,9 +144,7 @@ public class MongoDbDAOUser implements UserDAO
     return success;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /**
    * @see com.example.rcubed.UserDAO#addFriend(com.example.rcubed.User, java.lang.String)
    */
   @Override
@@ -184,9 +179,7 @@ public class MongoDbDAOUser implements UserDAO
     return success;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
+  /**
    * @see com.example.rcubed.UserDAO#removeFriend(com.example.rcubed.User, java.lang.String)
    */
   @Override

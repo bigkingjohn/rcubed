@@ -25,7 +25,7 @@ import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 
 /**
- * DAO (data access object) providing an interface for all the MongoDb operations that can be performed on a Photo.
+ * DAO (data access object) providing the interface for all the MongoDb operations that can be performed on a Photo.
  */
 public class MongoDbDAOPhoto implements PhotoDAO
 {
@@ -132,7 +132,7 @@ public class MongoDbDAOPhoto implements PhotoDAO
     }
     catch (IOException ex)
     {
-      // @@@ JAS TODO
+      // TODO Probably want to display some default error image.
     }
 
     return photo;

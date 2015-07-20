@@ -52,7 +52,7 @@ public class PhotoReceiver implements Receiver, SucceededListener
    * @param owner            The name of the user uploading the photo.
    * @param tagsField        A TextField containing a comma separated of tags the user wants to attach to this photo.
    * @param visibilityField  The visibility setting the user is assigning to this photo.
-   * @param photoDAO         The DAO for accessing the database.
+   * @param photoDAO         The DAO for interacting with photos the database.
    */
   public PhotoReceiver(String owner, TextField titleField, TextField tagsField, int visibilityField, PhotoDAO photoDAO)
   {

@@ -26,6 +26,11 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The UI/Page for the main part of the Photo Album Web App.
+ * 
+ * Allows users to view photos (theirs and their friends) upload photos, and manage their friends list.
+ */
 public class AlbumView extends CustomComponent implements View
 {
   UserDAO daoUser;
@@ -81,6 +86,14 @@ public class AlbumView extends CustomComponent implements View
     daoPhoto = (PhotoDAO) VaadinSession.getCurrent().getAttribute("photoDAO");
     user = (User) VaadinSession.getCurrent().getAttribute("user");
 
+    if ((user == null) || (daoUser == null) || (daoPhoto == null))
+    {
+      // Something has gone wrong with the login process - return the user to the login view.
+      getUI().getNavigator().navigateTo(LoginView.NAME);
+
+      // TODO ideally display some kind of error message.
+    }
+
     // set the date format to use.
     dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING);
 
@@ -90,16 +103,10 @@ public class AlbumView extends CustomComponent implements View
     // Make this view take up the full browser window space
     setSizeFull();
 
+    // Sort out the UI.
     logo = new Label(user.getUsername() + "'s Realistic Reality Recreations");
 
-    // Configure the tag input field.
-    tagSearch.setInputPrompt("<tag to filter photos by. If empty, get all photos.>");
-    tagSearch.setNullRepresentation(null);
-
-    friendSearch.setInputPrompt("<Enter a friend's name to see their photos>");
-    friendSearch.setNullRepresentation(null);
-
-    // Configure the login button.
+    // Configure the logout button.
     logout.addClickListener(new Button.ClickListener()
     {
       @Override
@@ -108,27 +115,37 @@ public class AlbumView extends CustomComponent implements View
         // "Logout" the user
         getSession().setAttribute("user", null);
 
-        // Refresh the view - should redirect to login page because of some "magic" in the view change handler detecting
-        // that we've set the user to null.
+        // Return to Login View.
         getUI().getNavigator().navigateTo(LoginView.NAME);
       }
     });
 
-    // Arrange the components within the view.
+    // Arrange the header components within a container.
     HorizontalLayout header = new HorizontalLayout(logo, logout);
     header.setSpacing(true);
 
-    // Configure the upload photo button.
+    // Tag input field.
+    tagSearch.setInputPrompt("<tag to filter photos by. If empty, get all photos.>");
+    tagSearch.setNullRepresentation(null);
+
+    // Friends photos search input field.
+    friendSearch.setInputPrompt("<Enter another user's name to see their photos>");
+    friendSearch.setNullRepresentation(null);
+
+    // Configure the get photo button.
     getPhotos.addClickListener(new Button.ClickListener()
     {
       @Override
       public void buttonClick(ClickEvent event)
       {
+        // Work out who's photos to get. If there is a value in the friend search field then we use that.
+        // If that field is empty, then we get the current user's photos.
         User owner = ((friendSearch.getValue() == null) || ("".equals(friendSearch.getValue()))) ? user : daoUser
             .getUser(daoPhoto, friendSearch.getValue());
 
         if (owner != null)
         {
+          // Display the Photos in the UI.
           ArrayList<Photo> photos = user.getPhotos(owner, tagSearch.getValue());
           VerticalLayout photoList = new VerticalLayout();
           photoList.setSpacing(true);
@@ -136,30 +153,33 @@ public class AlbumView extends CustomComponent implements View
 
           for (Photo photo : photos)
           {
-            // Create an UI image resource from the photo's image data.
-            // Grid layout has one colum. We begin with 1 row, because the grid layout is clever enough to extend this
-            // every time a new component is added to it.
+            // Create a UI image resource from the photo's image data.
+            // Grid layout has one column. We begin with 1 row, because we don't know exactly how many we need and the
+            // grid layout is clever enough to extend itself every time a new component is added.
             GridLayout imageDataContainer = new GridLayout(1, 1);
             imageDataContainer.setMargin(true);
             imageDataContainer.setWidth("100%");
 
-            // Add the Photos Meta Data
+            // Add the Photo's Meta Data
             imageDataContainer.addComponent(new Label("Title: " + photo.getTitle()));
             imageDataContainer.addComponent(new Label("Upload Date: " + dateFormat.format(photo.getTimeStamp())));
 
             // The tags are present as a caption on the photo rather than a Label for no particular reason.
             Image photoInUI = new Image(photo.getTags().toString(), new StreamResource(photo, photo.getId()));
 
+            // Add the image data to the parent UI container.
             imageDataContainer.addComponent(photoInUI);
+
             // Scale the image to fit the container.
             photoInUI.setWidth("100%");
 
-            // Add a new comment box and button.
+            // Add the new comment box and button.
             HorizontalLayout newCommentContainer = new HorizontalLayout();
             TextField newComment = new TextField();
             newComment.setInputPrompt("<Add new comment>");
 
             Button addComment = new Button("Add");
+
             addComment.addClickListener(new Button.ClickListener()
             {
               @Override
@@ -184,7 +204,8 @@ public class AlbumView extends CustomComponent implements View
             imageDataContainer.addComponent(newCommentContainer);
 
             // Add each comment as a new label below the photo.
-            // @@@ JAS how will these be ordered?
+            // The comments are ordered by their insertion into the database. We don't explicitly set their
+            // chronological order the way we do for the photos themselves.
             for (String comment : photo.getComments())
             {
               imageDataContainer.addComponent(new Label(comment));
@@ -199,7 +220,7 @@ public class AlbumView extends CustomComponent implements View
         }
         else
         {
-          // owner is null. That can only happen if some text was in the friend search bar that didnt match a user of
+          // Owner is null. That can only happen if some text was in the friend search bar that didn't match a user of
           // our system. Give some indication to the user that there's been a problem.
           new Notification("Unknown user: ." + friendSearch.getValue(), Notification.Type.WARNING_MESSAGE).show(Page
               .getCurrent());
@@ -207,11 +228,13 @@ public class AlbumView extends CustomComponent implements View
       }
     });
 
-    HorizontalLayout searchBar = new HorizontalLayout(tagSearch, getPhotos);
-    searchBar.setSpacing(true);
+    HorizontalLayout photoSearchBar = new HorizontalLayout(tagSearch, getPhotos);
+    photoSearchBar.setSpacing(true);
 
+    // Friends list.
     friendsContainer.addContainerProperty("Friends", String.class, "unknown");
 
+    // Add friends to the list.
     for (String name : user.getFriends())
     {
       Item newItem = friendsContainer.getItem(friendsContainer.addItem());
@@ -265,7 +288,7 @@ public class AlbumView extends CustomComponent implements View
       }
     });
 
-    // Configure the remove friendbutton.
+    // Configure the remove friend button.
     removeFriend.addClickListener(new Button.ClickListener()
     {
       @Override
@@ -273,12 +296,13 @@ public class AlbumView extends CustomComponent implements View
       {
         // Identify the friend(s) to be removed.
         Object selectedFriend = friendsList.getSelectedRow();
+
         if (selectedFriend != null)
         {
           Item exFriend = friendsContainer.getItem(selectedFriend);
 
-          // Removing a non existent ex-friend doesnt cause any problems (according to the method comments).
-          // But that shouldnt be possible because we require a user selection.
+          // Removing a non existent ex-friend doesn't cause any problems (according to the method comments).
+          // But that shouldn't be possible because we require a user selection.
           daoUser.removeFriend(user, (String) exFriend.getItemProperty("Friends").getValue());
 
           // Now remove him from front end container.
@@ -294,6 +318,7 @@ public class AlbumView extends CustomComponent implements View
 
     VerticalLayout friendBar = new VerticalLayout(friendsList, newFriend, addFriend, removeFriend);
 
+    // Main panel (contains the image list and the friends list).
     photoPanel.setWidth(500, Unit.PIXELS);
     photoPanel.setHeight(500, Unit.PIXELS);
 
@@ -301,6 +326,7 @@ public class AlbumView extends CustomComponent implements View
     mainWindow.setExpandRatio(photoPanel, 3);
     mainWindow.setExpandRatio(friendBar, 1);
 
+    // New Photo Upload section.
     newTitle.setInputPrompt("<Title>");
     newTitle.setCaption("Add a title to your photo.");
 
@@ -308,6 +334,9 @@ public class AlbumView extends CustomComponent implements View
     newTags.setCaption("Add tags to your photograph.  This can be a comma separated list or empty.");
 
     // Configure the upload photo button.
+    // The button is part of the Upload component, and it's on click listener calls recieveUpload() of the
+    // PhotoReceiver.
+    // TODO There is no built in validation that the user has actually selected a file.
     PhotoReceiver photoRec = new PhotoReceiver(user.getUsername(), newTitle, newTags, 2, daoPhoto);
     newPhoto = new Upload("Upload new photo.", photoRec);
     newPhoto.setCaption("Upload");
@@ -316,7 +345,8 @@ public class AlbumView extends CustomComponent implements View
     VerticalLayout uploadBox = new VerticalLayout(newPhoto, newTitle, newTags);
     uploadBox.setSpacing(true);
 
-    VerticalLayout mainLayout = new VerticalLayout(header, searchBar, friendSearch, mainWindow, uploadBox);
+    // Add everything to the top level UI container.
+    VerticalLayout mainLayout = new VerticalLayout(header, photoSearchBar, friendSearch, mainWindow, uploadBox);
     mainLayout.setSpacing(true);
     mainLayout.setMargin(true);
 

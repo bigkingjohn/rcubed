@@ -34,6 +34,7 @@ public class User
 
   /**
    * Empty constructor - used for building a User from an entry in the db.
+   * 
    * @param photoDAO
    */
   public User(PhotoDAO photoDAO)
@@ -136,10 +137,13 @@ public class User
   }
 
   /**
+   * Get a list of photos.
    * 
-   * @param photoOwner
-   * @param tag
-   * @return
+   * @param photoOwner  The owner of the photographs to get.
+   * @param tag         A tag (can be null/empty string) to filter the photos by.
+   * 
+   * @return A list of photos owned by "photoOwner" tagged with "tag" of the appropriate Visibility level or higher.
+   *         (The Visibility is calculated based on whether or not the requester is on the photoOwner's friend list)
    */
   public ArrayList<Photo> getPhotos(User photoOwner, String tag)
   {
@@ -158,7 +162,6 @@ public class User
     {
       // This user is on the photograph owner's friends list.
       allowedVisibility = Visibility.FRIENDS;
-
     }
 
     ArrayList<Photo> photos = photoDAO.getPhotos(ownersName, tag, allowedVisibility);

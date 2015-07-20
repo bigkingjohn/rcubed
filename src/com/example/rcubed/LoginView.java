@@ -5,16 +5,23 @@ import com.mongodb.client.MongoDatabase;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * Landing page for the Photo Album Web App.
+ * 
+ * Provides ability to login with an email (no password required) or create a new user.
+ *
+ */
 public class LoginView extends CustomComponent implements View
 {
   /**
@@ -32,10 +39,6 @@ public class LoginView extends CustomComponent implements View
 
   /**
    * For Vaadin navigation purposes.
-   * We want this to be the landing page for users so this must be an empty string.
-   * This is because a user navigates to our app with www.blah.com/ 
-   * There is no "location within the app" info following the slash ie an empty string!
-   * When navigating between views, we use www.blah.com/!#view.NAME 
    */
   public static final String NAME = "login";
 
@@ -47,9 +50,12 @@ public class LoginView extends CustomComponent implements View
   Button login = new Button("Login");
   Button newUser = new Button("New User");
 
+  /**
+   * Constructor
+   */
   public LoginView()
   {
-    // Initialise the connection to the db.
+    // Initialise a connection to the db and the DAOs.
     mongoClient = new MongoClient("localhost");
     database = mongoClient.getDatabase("Rcubed");
     daoPhoto = new MongoDbDAOPhoto(database, mongoClient.getDB("Rcubed"));
@@ -59,6 +65,7 @@ public class LoginView extends CustomComponent implements View
     VaadinSession.getCurrent().setAttribute("userDAO", daoUser);
     VaadinSession.getCurrent().setAttribute("photoDAO", daoPhoto);
 
+    // Make this view take up the full browser window space
     setSizeFull();
 
     // Configure the username input field.
@@ -73,8 +80,11 @@ public class LoginView extends CustomComponent implements View
       @Override
       public void buttonClick(ClickEvent event)
       {
+        // Confirm the username is an email address. (not the docs for the Email validator indicate that it is not fully
+        // RFC compliant.
         if (usernameField.isValid())
         {
+          // Lookup the user.
           User user = daoUser.getUser(daoPhoto, usernameField.getValue());
 
           if (user != null)
@@ -88,8 +98,8 @@ public class LoginView extends CustomComponent implements View
           else
           {
             // Send an error response indicating unknown user.
-            usernameField.setCaption("Unknown user");
-            usernameField.setIcon(new ThemeResource("error-indicator.png"));
+            new Notification("Unknown user: ." + usernameField.getValue(), Notification.Type.WARNING_MESSAGE).show(Page
+                .getCurrent());
 
             // Return focus to the username field.
             usernameField.focus();
@@ -123,8 +133,8 @@ public class LoginView extends CustomComponent implements View
           else
           {
             // Send an error response indicating unknown user.
-            usernameField.setCaption("Username already taken.");
-            usernameField.setIcon(new ThemeResource("error-indicator.png"));
+            new Notification("Username \"" + usernameField.getValue() + "\" already in use.",
+                Notification.Type.WARNING_MESSAGE).show(Page.getCurrent());
 
             // Return focus to the username field.
             usernameField.focus();
@@ -133,8 +143,7 @@ public class LoginView extends CustomComponent implements View
       }
     });
 
-    // Arrange the components within the view.
-    // Button container
+    // Arrange the components within the UI container.
     HorizontalLayout buttonLayout = new HorizontalLayout(login, newUser);
     buttonLayout.setSpacing(true);
 
